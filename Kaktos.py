@@ -1,116 +1,148 @@
-import webbrowser
-import urllib.parse
+import requests
+from bs4 import BeautifulSoup
+from colorama import Fore, Style, init
+import time
+import random
 
-def email_search(email):
-    dorks = [
-        f"site:facebook.com intext:{email}",
-        f"site:instagram.com intext:{email}",
-        f"site:twitter.com intext:{email}",
-        f"site:linkedin.com intext:{email}",
-        f"site:tiktok.com intext:{email}",
-        f"intext:{email}",
-        f"filetype:pdf {email}",
-        f"inurl:{email.split('@')[1]} intext:{email.split('@')[0]}"
-    ]
-    return dorks
+# Initialize colorama
+init(autoreset=True)
 
-def phone_search(phone):
-    # Remove country code if present
-    if phone.startswith('+30'):
-        phone = phone[3:]
-    elif phone.startswith('0030'):
-        phone = phone[4:]
+# User agents for requests
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0"
+]
+
+def get_random_agent():
+    return random.choice(USER_AGENTS)
+
+def check_platform(url_pattern, username, platform_name):
+    headers = {'User-Agent': get_random_agent()}
+    url = url_pattern.format(username=username)
     
-    dorks = [
-        f"site:facebook.com intext:{phone}",
-        f"site:instagram.com intext:{phone}",
-        f"site:viber.com intext:{phone}",
-        f"site:whatsapp.com intext:{phone}",
-        f"site:skype.com intext:{phone}",
-        f"intext:{phone}",
-        f"filetype:pdf {phone}",
-        f"intext:{phone} (694|695|696|697|698|699)",
-        f"intext:{phone} site:gr"
-    ]
-    return dorks
-
-def name_search(name):
-    # Greek to Greeklish conversion (basic)
-    greeklish = name.lower()
-    greeklish = greeklish.replace('α', 'a').replace('β', 'v').replace('γ', 'g')
-    greeklish = greeklish.replace('δ', 'd').replace('ε', 'e').replace('ζ', 'z')
-    greeklish = greeklish.replace('η', 'i').replace('θ', 'th').replace('ι', 'i')
-    greeklish = greeklish.replace('κ', 'k').replace('λ', 'l').replace('μ', 'm')
-    greeklish = greeklish.replace('ν', 'n').replace('ξ', 'x').replace('ο', 'o')
-    greeklish = greeklish.replace('π', 'p').replace('ρ', 'r').replace('σ', 's')
-    greeklish = greeklish.replace('τ', 't').replace('υ', 'y').replace('φ', 'f')
-    greeklish = greeklish.replace('χ', 'ch').replace('ψ', 'ps').replace('ω', 'o')
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Common checks for 404 pages
+            if any(term in response.text.lower() for term in ['not found', '404', 'does not exist', 'error']):
+                return False
+            return True
+        elif response.status_code == 404:
+            return False
+        else:
+            return None  # Unknown status
     
-    dorks = [
-        f'site:facebook.com "{name}"',
-        f'site:instagram.com "{name}"',
-        f'site:linkedin.com "{name}"',
-        f'site:tiktok.com "{name}"',
-        f'site:twitter.com "{name}"',
-        f'"{name}" site:gr',
-        f'"{name}" filetype:pdf',
-        f'"{name}" intitle:"about"',
-        f'"{greeklish}"',
-        f'"{name}" AND ("profile" OR "about" OR "contact")'
-    ]
-    return dorks
+    except Exception as e:
+        print(f"{Fore.YELLOW}[!] Error checking {platform_name}: {e}{Style.RESET_ALL}")
+        return None
 
-def search_google(dorks):
-    for dork in dorks:
-        query = urllib.parse.quote_plus(dork)
-        url = f"https://www.google.com/search?q={query}"
-        webbrowser.open_new_tab(url)
+def validate_email(email):
+    # Simple email validation
+    return '@' in email and '.' in email.split('@')[-1]
+
+def validate_phone(phone):
+    # Greek phone validation
+    phone = phone.strip().replace('+30', '').replace('0030', '')
+    return phone.isdigit() and len(phone) == 10 and phone.startswith(('69', '2', '21', '22', '23', '24', '25', '26', '27', '28', '29'))
+
+PLATFORMS = {
+    "Facebook": "https://www.facebook.com/{username}",
+    "Instagram": "https://www.instagram.com/{username}",
+    "TikTok": "https://www.tiktok.com/@{username}",
+    "Telegram": "https://t.me/{username}",
+    "Twitter": "https://twitter.com/{username}",
+    "GitHub": "https://github.com/{username}",
+    "Pastebin": "https://pastebin.com/u/{username}",
+    "Reddit": "https://www.reddit.com/user/{username}",
+    "YouTube": "https://www.youtube.com/@{username}",
+    "LinkedIn": "https://www.linkedin.com/in/{username}",
+    "Steam": "https://steamcommunity.com/id/{username}",
+    "Spotify": "https://open.spotify.com/user/{username}",
+    "Viber": "https://chats.viber.com/{username}",
+    "Skype": "https://join.skype.com/{username}",
+    "WhatsApp": "https://wa.me/30{username}",  # For phone numbers
+    "Replit": "https://replit.com/@{username}",
+    "PeekYou": "https://www.peekyou.com/{username}",
+    "PeopleFinder": "https://www.peoplefinder.com/{username}",
+    "Disney+": "https://www.disneyplus.com/profiles/{username}",
+    "Netflix": "https://www.netflix.com/profiles/{username}",
+    "PlayStation": "https://my.playstation.com/profile/{username}",
+    "Xbox": "https://account.xbox.com/profile?gamertag={username}",
+    "Brave Community": "https://community.brave.com/u/{username}",
+    "DuckDuckGo": "https://duckduckgo.com/?q={username}&ia=web",
+    "Tor Project": "https://metrics.torproject.org/user/{username}",
+    "Zedge": "https://www.zedge.net/profile/{username}",
+    "Temu": "https://www.temu.com/user/{username}"
+}
+
+def check_all_platforms(username, is_email=False, is_phone=False):
+    results = {}
+    
+    for platform, url_pattern in PLATFORMS.items():
+        if is_phone and platform == "WhatsApp":
+            # Special handling for WhatsApp with phone numbers
+            formatted_username = username.replace('+30', '').replace('0030', '')
+            url = PLATFORMS[platform].format(username=formatted_username)
+        else:
+            url = url_pattern.format(username=username)
+        
+        result = check_platform(url_pattern, username, platform)
+        results[platform] = result
+        
+        # Print result with colors
+        if result is True:
+            print(f"{Fore.GREEN}[+] {platform}: Valid{Style.RESET_ALL}")
+        elif result is False:
+            print(f"{Fore.RED}[-] {platform}: Invalid{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.YELLOW}[?] {platform}: Unknown{Style.RESET_ALL}")
+        
+        # Add delay to avoid rate limiting
+        time.sleep(1)
+    
+    return results
 
 def main():
-    print("""
-  ____ ____  ____  _  ___ _ ____ _____ 
- / ___/ ___||  _ \| |/ / | / ___| ____|
-| |  _\___ \| | | | ' /| | \___ \  _|  
-| |_| |___) | |_| | . \| |___|_) | |___ 
- \____|____/|____/|_|\_\_____|____/_____|
-    """)
-    print("Google Dork Generator - Greek Edition")
-    print("------------------------------------")
-    print("(1) Search By Email")
-    print("(2) Search Phone Number (+30)")
-    print("(3) Search Full name (Greeklish & Ελληνικά)")
-    print("------------------------------------")
+    print(f"""{Fore.CYAN}
+   ____ _   _ ____  _____ ___ _   _ ____  _____ ____  
+  / ___| | | |  _ \| ____|_ _| \ | |  _ \| ____|  _ \ 
+ | |  _| | | | |_) |  _|  | ||  \| | | | |  _| | |_) |
+ | |_| | |_| |  _ <| |___ | || |\  | |_| | |___|  _ < 
+  \____|\___/|_| \_\_____|___|_| \_|____/|_____|_| \_\
+    {Style.RESET_ALL}""")
+    print(f"{Fore.MAGENTA}Platform Checker v2.0 - Auto Validator{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}=========================================={Style.RESET_ALL}")
     
-    choice = input("Select an option (1-3): ")
+    print("\n1. Check by Username/Email")
+    print("2. Check by Phone Number (+30)")
+    choice = input("\nSelect an option (1-2): ")
     
     if choice == "1":
-        email = input("Enter email address: ").strip()
-        if "@" not in email:
-            print("Invalid email address")
-            return
-        dorks = email_search(email)
+        username = input("Enter username or email: ").strip()
+        if '@' in username:
+            if not validate_email(username):
+                print(f"{Fore.RED}Invalid email format!{Style.RESET_ALL}")
+                return
+            print(f"\n{Fore.BLUE}Checking email across platforms...{Style.RESET_ALL}")
+            check_all_platforms(username, is_email=True)
+        else:
+            print(f"\n{Fore.BLUE}Checking username across platforms...{Style.RESET_ALL}")
+            check_all_platforms(username)
+    
     elif choice == "2":
-        phone = input("Enter phone number (with or without +30): ").strip()
-        if not phone.isdigit() and not phone.startswith(('+30', '0030')):
-            print("Invalid phone number format")
+        phone = input("Enter phone number (with +30 or 0030): ").strip()
+        if not validate_phone(phone):
+            print(f"{Fore.RED}Invalid Greek phone number!{Style.RESET_ALL}")
             return
-        dorks = phone_search(phone)
-    elif choice == "3":
-        name = input("Enter full name: ").strip()
-        if not name:
-            print("Name cannot be empty")
-            return
-        dorks = name_search(name)
+        print(f"\n{Fore.BLUE}Checking phone number across platforms...{Style.RESET_ALL}")
+        check_all_platforms(phone, is_phone=True)
+    
     else:
-        print("Invalid choice")
-        return
-    
-    print("\nGenerated Google Dorks:")
-    for i, dork in enumerate(dorks, 1):
-        print(f"{i}. {dork}")
-    
-    print("\nOpening search results in browser...")
-    search_google(dorks)
+        print(f"{Fore.RED}Invalid choice!{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     main()
