@@ -13,7 +13,6 @@ def generate_dork(choice, query):
     
     # Αναζήτηση για ονοματεπώνυμο (Greeklish & Ελληνικά)
     elif choice == "3":  
-        # Ελέγχουμε και Greeklish (όπως "papadopoulosgiwrgos") και Ελληνικά (όπως "παπαδόπουλος")
         dork = f'site:peoplefinder.com OR site:peekyou.com OR site:linkedin.com OR site:facebook.com OR site:twitter.com OR site:instagram.com OR site:tiktok.com OR site:telegram.org OR site:reddit.com OR site:steamcommunity.com OR site:discord.com OR site:microsoft.com OR site:xbox.com OR site:playstation.com "{query}" OR "{query.replace(" ", "")}" OR "{query.replace(" ", "_")}" OR "{query.replace(" ", "").lower()}"'
     
     else:
@@ -21,8 +20,14 @@ def generate_dork(choice, query):
         return
     
     search_url = base_url + dork.replace(" ", "+")
+    
+    # Εμφάνιση του URL για έλεγχο
+    print(f"Το URL αναζήτησης είναι: {search_url}")
+    
     print("Ανοίγω αναζήτηση στο Google...")
-    webbrowser.open(search_url)
+    
+    # Άνοιγμα URL σε νέα καρτέλα
+    webbrowser.open_new_tab(search_url)
 
 def main():
     print("Επιλέξτε τι θέλετε να αναζητήσετε:")
