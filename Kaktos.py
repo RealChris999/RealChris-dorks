@@ -1,48 +1,116 @@
 import webbrowser
+import urllib.parse
 
-def generate_dork(choice, query):
-    base_url = "https://www.google.com/search?q="
+def email_search(email):
+    dorks = [
+        f"site:facebook.com intext:{email}",
+        f"site:instagram.com intext:{email}",
+        f"site:twitter.com intext:{email}",
+        f"site:linkedin.com intext:{email}",
+        f"site:tiktok.com intext:{email}",
+        f"intext:{email}",
+        f"filetype:pdf {email}",
+        f"inurl:{email.split('@')[1]} intext:{email.split('@')[0]}"
+    ]
+    return dorks
+
+def phone_search(phone):
+    # Remove country code if present
+    if phone.startswith('+30'):
+        phone = phone[3:]
+    elif phone.startswith('0030'):
+        phone = phone[4:]
     
-    # Αναζήτηση για email
-    if choice == "1":  
-        dork = f'site:pastebin.com OR site:github.com OR site:linkedin.com OR site:facebook.com OR site:twitter.com OR site:instagram.com OR site:tiktok.com OR site:telegram.org OR site:reddit.com OR site:steamcommunity.com OR site:viber.com OR site:whatsapp.com OR site:discord.com OR site:microsoft.com OR site:xbox.com OR site:playstation.com "{query}"'
+    dorks = [
+        f"site:facebook.com intext:{phone}",
+        f"site:instagram.com intext:{phone}",
+        f"site:viber.com intext:{phone}",
+        f"site:whatsapp.com intext:{phone}",
+        f"site:skype.com intext:{phone}",
+        f"intext:{phone}",
+        f"filetype:pdf {phone}",
+        f"intext:{phone} (694|695|696|697|698|699)",
+        f"intext:{phone} site:gr"
+    ]
+    return dorks
+
+def name_search(name):
+    # Greek to Greeklish conversion (basic)
+    greeklish = name.lower()
+    greeklish = greeklish.replace('α', 'a').replace('β', 'v').replace('γ', 'g')
+    greeklish = greeklish.replace('δ', 'd').replace('ε', 'e').replace('ζ', 'z')
+    greeklish = greeklish.replace('η', 'i').replace('θ', 'th').replace('ι', 'i')
+    greeklish = greeklish.replace('κ', 'k').replace('λ', 'l').replace('μ', 'm')
+    greeklish = greeklish.replace('ν', 'n').replace('ξ', 'x').replace('ο', 'o')
+    greeklish = greeklish.replace('π', 'p').replace('ρ', 'r').replace('σ', 's')
+    greeklish = greeklish.replace('τ', 't').replace('υ', 'y').replace('φ', 'f')
+    greeklish = greeklish.replace('χ', 'ch').replace('ψ', 'ps').replace('ω', 'o')
     
-    # Αναζήτηση για αριθμό τηλεφώνου
-    elif choice == "2":  
-        dork = f'site:facebook.com OR site:twitter.com OR site:linkedin.com OR site:instagram.com OR site:tiktok.com OR site:telegram.org OR site:viber.com OR site:whatsapp.com OR site:reddit.com OR site:discord.com OR site:microsoft.com OR site:xbox.com OR site:playstation.com "{query}"'
-    
-    # Αναζήτηση για ονοματεπώνυμο (Greeklish & Ελληνικά)
-    elif choice == "3":  
-        dork = f'site:peoplefinder.com OR site:peekyou.com OR site:linkedin.com OR site:facebook.com OR site:twitter.com OR site:instagram.com OR site:tiktok.com OR site:telegram.org OR site:reddit.com OR site:steamcommunity.com OR site:discord.com OR site:microsoft.com OR site:xbox.com OR site:playstation.com "{query}" OR "{query.replace(" ", "")}" OR "{query.replace(" ", "_")}" OR "{query.replace(" ", "").lower()}"'
-    
-    else:
-        print("Λάθος επιλογή! Παρακαλώ εισάγετε 1, 2 ή 3.")
-        return
-    
-    search_url = base_url + dork.replace(" ", "+")
-    
-    # Εμφάνιση του URL για έλεγχο
-    print(f"Το URL αναζήτησης είναι: {search_url}")
-    
-    print("Ανοίγω αναζήτηση στο Google...")
-    
-    # Άνοιγμα URL σε νέα καρτέλα
-    webbrowser.open_new_tab(search_url)
+    dorks = [
+        f'site:facebook.com "{name}"',
+        f'site:instagram.com "{name}"',
+        f'site:linkedin.com "{name}"',
+        f'site:tiktok.com "{name}"',
+        f'site:twitter.com "{name}"',
+        f'"{name}" site:gr',
+        f'"{name}" filetype:pdf',
+        f'"{name}" intitle:"about"',
+        f'"{greeklish}"',
+        f'"{name}" AND ("profile" OR "about" OR "contact")'
+    ]
+    return dorks
+
+def search_google(dorks):
+    for dork in dorks:
+        query = urllib.parse.quote_plus(dork)
+        url = f"https://www.google.com/search?q={query}"
+        webbrowser.open_new_tab(url)
 
 def main():
-    print("Επιλέξτε τι θέλετε να αναζητήσετε:")
-    print("1 - Search By Email")
-    print("2 - Search By Phone (+30)")
-    print("3 - Search By Full Name (Greeklish & Ελληνικά)")
+    print("""
+  ____ ____  ____  _  ___ _ ____ _____ 
+ / ___/ ___||  _ \| |/ / | / ___| ____|
+| |  _\___ \| | | | ' /| | \___ \  _|  
+| |_| |___) | |_| | . \| |___|_) | |___ 
+ \____|____/|____/|_|\_\_____|____/_____|
+    """)
+    print("Google Dork Generator - Greek Edition")
+    print("------------------------------------")
+    print("(1) Search By Email")
+    print("(2) Search Phone Number (+30)")
+    print("(3) Search Full name (Greeklish & Ελληνικά)")
+    print("------------------------------------")
     
-    choice = input("Δώστε την επιλογή σας (1/2/3): ").strip()  # Καθαρίζει τα κενά
-    query = input("Εισάγετε το στοιχείο για αναζήτηση: ").strip()  # Καθαρίζει τα κενά
+    choice = input("Select an option (1-3): ")
     
-    if choice not in ['1', '2', '3']:
-        print("Λάθος επιλογή! Παρακαλώ επιλέξτε 1, 2 ή 3.")
+    if choice == "1":
+        email = input("Enter email address: ").strip()
+        if "@" not in email:
+            print("Invalid email address")
+            return
+        dorks = email_search(email)
+    elif choice == "2":
+        phone = input("Enter phone number (with or without +30): ").strip()
+        if not phone.isdigit() and not phone.startswith(('+30', '0030')):
+            print("Invalid phone number format")
+            return
+        dorks = phone_search(phone)
+    elif choice == "3":
+        name = input("Enter full name: ").strip()
+        if not name:
+            print("Name cannot be empty")
+            return
+        dorks = name_search(name)
+    else:
+        print("Invalid choice")
         return
     
-    generate_dork(choice, query)
+    print("\nGenerated Google Dorks:")
+    for i, dork in enumerate(dorks, 1):
+        print(f"{i}. {dork}")
+    
+    print("\nOpening search results in browser...")
+    search_google(dorks)
 
 if __name__ == "__main__":
     main()
