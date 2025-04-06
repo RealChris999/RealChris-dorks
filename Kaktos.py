@@ -114,7 +114,7 @@ def main():
  | |_| | |_| |  _ <| |___ | || |\  | |_| | |___|  _ < 
   \____|\___/|_| \_\_____|___|_| \_|____/|_____|_| \_\
     {Style.RESET_ALL}""")
-    print(f"{Fore.MAGENTA}Platform Checker v2.0 - Auto Validator{Style.RESET_ALL}")
+    print(f"{Fore.MAGENTA}Checker v2.0 - Auto Validator by RealChris{Style.RESET_ALL}")
     print(f"{Fore.YELLOW}=========================================={Style.RESET_ALL}")
     
     print("\n1. Check by Username/Email")
