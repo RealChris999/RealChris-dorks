@@ -30,8 +30,12 @@ def main():
     print("2 - Search By Phone (+30)")
     print("3 - Search By Full Name (Greeklish & Ελληνικά)")
     
-    choice = input("Δώστε την επιλογή σας (1/2/3): ")
-    query = input("Εισάγετε το στοιχείο για αναζήτηση: ")
+    choice = input("Δώστε την επιλογή σας (1/2/3): ").strip()  # Καθαρίζει τα κενά
+    query = input("Εισάγετε το στοιχείο για αναζήτηση: ").strip()  # Καθαρίζει τα κενά
+    
+    if choice not in ['1', '2', '3']:
+        print("Λάθος επιλογή! Παρακαλώ επιλέξτε 1, 2 ή 3.")
+        return
     
     generate_dork(choice, query)
 
